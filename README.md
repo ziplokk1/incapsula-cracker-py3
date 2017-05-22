@@ -1,6 +1,3 @@
-# Please Note
-## I have not been able to keep this script updated. If there are issues, try to check out the `hotfix` branch and see if that works. 
-
 # Description
 
 This module is used to wrap any request to a webpage blocked by incapsula.
