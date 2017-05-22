@@ -74,8 +74,7 @@ class IncapSession(Session):
 
     def __init__(self, *args, **kwargs):
         super(IncapSession, self).__init__(*args, **kwargs)
-        self.headers[
-            'User-Agent'] = 'IncapUnblockSession (sdscdeveloper@gmail.com | https://github.com/ziplokk1/incapsula-cracker-py3)'
+        self.headers['User-Agent'] = 'IncapUnblockSession (sdscdeveloper@gmail.com | https://github.com/ziplokk1/incapsula-cracker-py3)'
 
     def get_session_cookies(self):
         """
