@@ -9,7 +9,7 @@ REQUIREMENTS = [
 setup(
     name='incapsula-cracker-py3',
     version=version,
-    packages=['incap'],
+    packages=['incapsula'],
     url='https://github.com/ziplokk1/incapsula-cracker-py3',
     license='LICENSE.txt',
     author='Mark Sanders',
