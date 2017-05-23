@@ -76,10 +76,12 @@ def simple_digest(s):
 
 class IncapSession(Session):
     MAX_INCAP_RETRIES = 3
+    default_useragent = 'IncapUnblockSession (sdscdeveloper@gmail.com | https://github.com/ziplokk1/incapsula-cracker-py3)'
 
     def __init__(self, *args, **kwargs):
+        user_agent = kwargs.pop('user_agent', self.default_useragent)
         super(IncapSession, self).__init__(*args, **kwargs)
-        self.headers['User-Agent'] = 'IncapUnblockSession (sdscdeveloper@gmail.com | https://github.com/ziplokk1/incapsula-cracker-py3)'
+        self.headers['User-Agent'] = user_agent
 
     def get_session_cookies(self):
         """
