@@ -4,6 +4,7 @@ import datetime
 import logging
 import random
 
+import re
 from six.moves.urllib.parse import quote, urlsplit
 
 from bs4 import BeautifulSoup
@@ -159,6 +160,21 @@ class IncapSession(Session):
         res = v_array + ',digest=' + ','.join(digests)
         self.create_cookie('___utmvc', res, None, domain=domain)
 
+    def incap_blocked(self, content):
+        """
+        Check if the resource is blocked by incapsula.
+        :param content: 
+        :return: 
+        """
+        # Check for the ROBOTS meta tag in the content.
+        # This is a dead giveaway that the resource is blocked by incap.
+        soup = BeautifulSoup(content, 'html.parser')
+        # Not always reliable since some pages have a <meta name="robots"> even if its not blocked by incap.
+        # To circumvent that, we also look for an iframe which shows the incapsula error message.
+        robots_tag = soup.find('meta', {'name':  re.compile('^robots$', re.IGNORECASE)})
+        incap_iframe = soup.find('iframe', {'src': re.compile('^/_Incapsula_Resource.*')})
+        return robots_tag and incap_iframe
+
     def crack(self, resp, org=None, tries=0):
         # Use to hold the original request so that when attempting the new unblocked request, we have a reference
         # to the original url.
@@ -169,12 +185,7 @@ class IncapSession(Session):
             logging.debug('incap blocked. not retrying. {}'.format(resp.url))
             return resp
 
-        # Check for the ROBOTS meta tag in the content.
-        # This is a dead giveaway that the resource is blocked by incap.
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        robots_tag = soup.find('meta', {'name': 'ROBOTS'}) or soup.find('meta', {'name': 'robots'})
-
-        if robots_tag:
+        if self.incap_blocked(resp.content):
             logging.debug('incap blocked. retrying. {}'.format(resp.url))
 
             # Split the url so that no matter what site is being requested, we can figure out the host of
