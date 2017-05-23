@@ -233,9 +233,6 @@ class IncapSession(Session):
         iframe_url = incap_iframe.get('src')
         resource = self.get(scheme + '://' + host + iframe_url, incap=True)
 
-        with open('iframe-content.html', 'wb') as f:
-            f.write(resource.content)
-
         # If the element below is found, then the iframe content is for a recaptcha and there's no way around that.
         soup = BeautifulSoup(resource.content, 'html.parser')
         is_recaptcha = bool(soup.find('form', {'id': 'captcha-form'}))
