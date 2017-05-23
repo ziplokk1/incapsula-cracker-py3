@@ -2,7 +2,7 @@
 
 This module is used to wrap any request to a webpage blocked by incapsula. Despite the name, this library should be ok to use with python2.7.
 
-Encapsula has begun using recaptcha after too many requests which may seem malicious. As of now, there is no way around it.
+Encapsula has begun using re-captcha after too many requests which may seem malicious. As of now, there is no way around it.
 
 Currently in order to detect that, I just simply raise an IncapBlocked error when the page is blocked by re-captcha.
 
@@ -49,9 +49,9 @@ except IncapBlocked as e:
 # Notes
 
 * As of now, this is only proven to work with the following sites:
-* * whoscored.com
-* * coursehero.com
-* * offerup.com
+  * whoscored.com
+  * coursehero.com
+  * offerup.com
 * I understand that there's minimal commenting and that's because I'm not sure exactly why incapsula is sending requests to certain pages other than to obtain cookies. This is just a literal reverse engineer of incapsulas javascript code.
 * Feel free to contribute. Unfortunately webscraping is such a dynamic field that I can't always put out updates and make changes for specific sites. So I turn to the community to help with those issues. Thank you for your understanding. For anyone who is using this library and it works for your site, please send me a note so i can add it to the list.
 
