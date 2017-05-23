@@ -272,7 +272,7 @@ class IncapSession(Session):
 
             # Call crack() again since if the request isn't blocked after the above cookie-set and request,
             # then it will just return the unblocked resource.
-            return self.crack(self.get(org.url, incap=True), org=org, tries=tries+1)
+            return self.crack(self.get(org.url, bypass_crack=True), org=org, tries=tries+1)
         return resp
 
     # noinspection PyIncorrectDocstring
@@ -282,16 +282,17 @@ class IncapSession(Session):
         
         :param url: URL for the new :class:`Request` object.
         :param kwargs: Optional arguments that ``request`` takes.
-        :param kwargs['incap']: Used so when sending a get request from this instance, 
-            we dont end up creating an infinate loop by calling .get() then .crack() which calls 
-            .get() and repeat x infinity. Also any requests made to get encapsula resources dont need to be cracked.
+        :param kwargs['bypass_crack']: Use when sending a request that you dont want to go through the incapsula crack.
+            Used in this class so when sending a get request from this instance, 
+            we dont end up creating an infinate loop by calling .get() then .crack() which calls .get()
+            and repeat x infinity. Also any requests made to get encapsula resources dont need to be cracked.
         :rtype: requests.Response
         """
 
         kwargs.setdefault('allow_redirects', True)
 
         # If the request is to get the incapsula resources, then we dont call crack().
-        if kwargs.pop('incap', False):
+        if kwargs.pop('bypass_crack', False):
             return self.request('GET', url, **kwargs)
 
         return self.crack(self.request('GET', url, **kwargs))
