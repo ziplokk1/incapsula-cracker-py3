@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
 
-version = '0.1.4.1'
+version = '0.1.5'
 
 REQUIREMENTS = [
     'requests',
-    'bs4'
+    'bs4',
+    'six'
 ]
 
 setup(

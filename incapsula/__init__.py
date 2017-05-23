@@ -15,9 +15,9 @@ logger = logging.getLogger('incapsula')
 
 class IncapBlocked(ValueError):
 
-    def __init__(self, response, *args, **kwargs):
+    def __init__(self, response, *args):
         self.response = response
-        super(IncapBlocked, self).__init__(*args, **kwargs)
+        super(IncapBlocked, self).__init__(*args)
 
 
 # A list of valid values which are tested in the incapsula test method.
@@ -102,19 +102,23 @@ def simple_digest(s):
 class IncapSession(Session):
     # Max retries before giving up cracking incapsula.
     MAX_INCAP_RETRIES = 3
+    # noinspection PyPep8
     default_useragent = 'IncapUnblockSession (sdscdeveloper@gmail.com | https://github.com/ziplokk1/incapsula-cracker-py3)'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
+        # noinspection PyPep8
         """
-        
-        :param args: 
+                
         :param kwargs: 
         :param user_agent: Change the default user agent when sending requests.
-        :param cookie_domain: Sometimes the domain set for the cookie isn't the same as the actual host. i.e. .domain.com instead of www.domain.com. Use this param to change the domain which is set in the cookie.
+        :param cookie_domain: Use this param to change the domain which is set in the cookie.
+            Sometimes the domain set for the cookie isn't the same as the actual host. 
+            i.e. .domain.com instead of www.domain.com. 
+            
         """
         user_agent = kwargs.pop('user_agent', self.default_useragent)
         self.cookie_domain = kwargs.pop('cookie_domain', '')
-        super(IncapSession, self).__init__(*args, **kwargs)
+        super(IncapSession, self).__init__()
         self.headers['User-Agent'] = user_agent
 
     def get_session_cookies(self):
@@ -153,6 +157,7 @@ class IncapSession(Session):
         """
         Set the incapsula cookie in the session cookies.
         
+        :param domain: 
         :param name: Cookie name.
         :param value: Cookie value.
         :param seconds: Expiry seconds from the current time.
@@ -186,6 +191,7 @@ class IncapSession(Session):
             createCookie("___utmvc", res, 20);
         }
         ```
+        :param domain: 
         :param v_array: 
         :return: 
         """
@@ -197,6 +203,7 @@ class IncapSession(Session):
         logger.debug('setting ___utmvc cookie to {}'.format(res))
         self.create_cookie('___utmvc', res, 20, domain=domain)
 
+    # noinspection PyMethodMayBeStatic
     def incap_blocked(self, content):
         """
         Check if the resource is blocked by incapsula.
@@ -268,14 +275,16 @@ class IncapSession(Session):
             return self.crack(self.get(org.url, incap=True), org=org, tries=tries+1)
         return resp
 
+    # noinspection PyIncorrectDocstring
     def get(self, url, **kwargs):
-        r"""Sends a GET request. Returns :class:`Response` object.
-
+        """
+        Sends a GET request. Returns :class:`Response` object.
+        
         :param url: URL for the new :class:`Request` object.
-        :param \*\*kwargs: Optional arguments that ``request`` takes.
-        :param incap: Used so when sending a get request from this instance, we dont end up creating an infinate loop
-            by calling .get() then .crack() which calls .get() and repeat x infinity. Also any requests made to get 
-            encapsula resources dont need to be cracked.
+        :param kwargs: Optional arguments that ``request`` takes.
+        :param kwargs['incap']: Used so when sending a get request from this instance, 
+            we dont end up creating an infinate loop by calling .get() then .crack() which calls 
+            .get() and repeat x infinity. Also any requests made to get encapsula resources dont need to be cracked.
         :rtype: requests.Response
         """
 
