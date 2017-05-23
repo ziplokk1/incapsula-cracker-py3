@@ -10,6 +10,24 @@ session = IncapSession()
 response = session.get('http://example.com')  # url is not blocked by incapsula
 ```
 
+```python
+# Sometimes incapsula will block based on user agent.
+from incapsula import IncapSession
+session = IncapSession(user_agent='any-user-agent-string')
+respose = session.get('http://example.com')
+```
+
+```python
+# Since IncapSession inherits from requests.Session, you can pass all the same arguments to it.
+# See the requests documentation here (http://docs.python-requests.org/en/master/user/advanced/#session-objects)
+from __future__ import print_function
+from incapsula import IncapSession
+session = IncapSession()
+session.cookies.set('cookie-key', 'cookie-value')
+response = session.get('http://example.com', headers={'key': 'value'})
+print(session.cookies)
+```
+
 # Setup
 
 `pip install incapsula-cracker-py3`
@@ -19,7 +37,8 @@ response = session.get('http://example.com')  # url is not blocked by incapsula
 * As of now, this is only proven to work with the following sites:
 * * whoscored.com
 * * coursehero.com
+* * offerup.com
 * I understand that there's minimal commenting and that's because I'm not sure exactly why incapsula is sending requests to certain pages other than to obtain cookies. This is just a literal reverse engineer of incapsulas javascript code.
 * Feel free to contribute. Unfortunately webscraping is such a dynamic field that I can't always put out updates and make changes for specific sites. So I turn to the community to help with those issues. Thank you for your understanding. For anyone who is using this library and it works for your site, please send me a note so i can add it to the list.
 
-## As Always: Scrape responsibly, obey timeouts, and try to obey the robots.txt. ;)
+## As Always: Scrape responsibly, obey timeouts, and obey the robots.txt. ;)
