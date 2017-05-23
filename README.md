@@ -19,6 +19,12 @@ response = session.get('http://example.com')  # url is not blocked by incapsula
 from incapsula import IncapSession
 session = IncapSession(user_agent='any-user-agent-string')
 respose = session.get('http://example.com')
+
+# This can also be done after instantiation.
+session.headers['User-Agent'] = 'some-other-user-agent-string'
+
+# It can also be done on a per request basis, just like requests.
+response = session.get('http://example.com', headers={'User-Agent': 'another-user-agent-string'})
 ```
 
 ```python
@@ -28,7 +34,7 @@ from __future__ import print_function
 from incapsula import IncapSession
 session = IncapSession()
 session.cookies.set('cookie-key', 'cookie-value')
-response = session.get('http://example.com', headers={'key': 'value'})
+response = session.get('http://example.com', headers={'Referer': 'http://other-example.com'})
 print(session.cookies)
 ```
 
