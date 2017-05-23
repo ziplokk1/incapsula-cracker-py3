@@ -2,6 +2,10 @@
 
 This module is used to wrap any request to a webpage blocked by incapsula. Despite the name, this library should be ok to use with python2.7.
 
+Encapsula has begun using recaptcha after too many requests which may seem malicious. As of now, there is no way around it.
+
+Currently in order to detect that, I just simply raise an IncapBlocked error when the page is blocked by re-captcha.
+
 # Usage
 
 ```python
@@ -26,6 +30,16 @@ session = IncapSession()
 session.cookies.set('cookie-key', 'cookie-value')
 response = session.get('http://example.com', headers={'key': 'value'})
 print(session.cookies)
+```
+
+```python
+# Handling re-captcha blocks.
+from incapsula import IncapSession, IncapBlocked
+session = IncapSession()
+try:
+    response = session.get('http://example.com')
+except IncapBlocked as e:
+    raise
 ```
 
 # Setup

@@ -10,7 +10,15 @@ from six.moves.urllib.parse import quote, urlsplit
 from bs4 import BeautifulSoup
 from requests import Session
 
-logger = logging.getLogger()
+logger = logging.getLogger('incapsula')
+
+
+class IncapBlocked(ValueError):
+
+    def __init__(self, response, *args, **kwargs):
+        self.response = response
+        super(IncapBlocked, self).__init__(*args, **kwargs)
+
 
 # A list of valid values which are tested in the incapsula test method.
 # These values are pulled straight from my browser and should be enough to spoof
@@ -97,7 +105,15 @@ class IncapSession(Session):
     default_useragent = 'IncapUnblockSession (sdscdeveloper@gmail.com | https://github.com/ziplokk1/incapsula-cracker-py3)'
 
     def __init__(self, *args, **kwargs):
+        """
+        
+        :param args: 
+        :param kwargs: 
+        :param user_agent: Change the default user agent when sending requests.
+        :param cookie_domain: Sometimes the domain set for the cookie isn't the same as the actual host. i.e. .domain.com instead of www.domain.com. Use this param to change the domain which is set in the cookie.
+        """
         user_agent = kwargs.pop('user_agent', self.default_useragent)
+        self.cookie_domain = kwargs.pop('cookie_domain', '')
         super(IncapSession, self).__init__(*args, **kwargs)
         self.headers['User-Agent'] = user_agent
 
@@ -178,7 +194,8 @@ class IncapSession(Session):
         for cookie_val in cookies:
             digests.append(simple_digest(v_array + cookie_val))
         res = v_array + ',digest=' + ','.join(digests)
-        self.create_cookie('___utmvc', res, None, domain=domain)
+        logger.debug('setting ___utmvc cookie to {}'.format(res))
+        self.create_cookie('___utmvc', res, 20, domain=domain)
 
     def incap_blocked(self, content):
         """
@@ -196,6 +213,34 @@ class IncapSession(Session):
         incap_iframe = soup.find('iframe', {'src': re.compile('^/_Incapsula_Resource.*')})
         return robots_tag and incap_iframe
 
+    def incap_recaptcha_blocked(self, scheme, host, content):
+        """
+        Get the content from the iframe in a blocked request to determine if the block contains a captcha.
+        
+        :param scheme: http, ftp, https, etc.
+        :param host: www.example.com.
+        :param content: HTML content from a response.
+        :return: 
+        """
+        soup = BeautifulSoup(content, 'html.parser')
+        # Get incap iframe
+        incap_iframe = soup.find('iframe', {'src': re.compile('^/_Incapsula_Resource.*')})
+        # If the iframe doesn't exist then it's not recaptcha blocked.
+        if not incap_iframe:
+            return False
+
+        # Send request to get the content of the iframe.
+        iframe_url = incap_iframe.get('src')
+        resource = self.get(scheme + '://' + host + iframe_url, incap=True)
+
+        with open('iframe-content.html', 'wb') as f:
+            f.write(resource.content)
+
+        # If the element below is found, then the iframe content is for a recaptcha and there's no way around that.
+        soup = BeautifulSoup(resource.content, 'html.parser')
+        is_recaptcha = bool(soup.find('form', {'id': 'captcha-form'}))
+        return is_recaptcha
+
     def crack(self, resp, org=None, tries=0):
         # Use to hold the original request so that when attempting the new unblocked request, we have a reference
         # to the original url.
@@ -203,11 +248,10 @@ class IncapSession(Session):
 
         # Return original response after too many tries to bypass incap.
         if tries >= self.MAX_INCAP_RETRIES:
-            logging.debug('incap blocked. not retrying. {}'.format(resp.url))
-            return resp
+            raise IncapBlocked(resp, 'max retries exceeded when attempting to crack incapsula.')
 
         if self.incap_blocked(resp.content):
-            logging.debug('incap blocked. retrying. {}'.format(resp.url))
+            logger.debug('incap blocked. attempt={} url={}'.format(tries, resp.url))
 
             # Split the url so that no matter what site is being requested, we can figure out the host of
             # the incapsula resource.
@@ -215,13 +259,16 @@ class IncapSession(Session):
             scheme = split.scheme
             host = split.netloc
 
+            if self.incap_recaptcha_blocked(scheme, host, resp.content):
+                raise IncapBlocked(resp, 'resource blocked by incapsula re-captcha method.')
+
             # Set cookie then send request to incap resource to "apply" cookie.
-            self.set_incap_cookie(test(), host)
+            self.set_incap_cookie(test(), self.cookie_domain or host)
             self.get(scheme + '://' + host + '/_Incapsula_Resource?SWKMTFSR=1&e={}'.format(random.random()))
 
             # Call crack() again since if the request isn't blocked after the above cookie-set and request,
             # then it will just return the unblocked resource.
-            return self.crack(self.get(org.url, incap=True), org=org, tries=tries + 1)
+            return self.crack(self.get(org.url, incap=True), org=org, tries=tries+1)
         return resp
 
     def get(self, url, **kwargs):
