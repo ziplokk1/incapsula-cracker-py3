@@ -12,6 +12,9 @@ from requests import Session
 
 logger = logging.getLogger()
 
+# A list of valid values which are tested in the incapsula test method.
+# These values are pulled straight from my browser and should be enough to spoof
+# the robot check when setting the cookie.
 o = [
     ('navigator', 'true'),
     ('navigator.vendor', 'Google Inc.'),
@@ -49,12 +52,25 @@ o = [
 
 
 def test():
+    """
+    Quote each value in the tuple list and return a comma delimited string of the parameters.
+    
+    This method is a shortened version of incapsulas test method. What the original method does is check 
+    for specific plugins in your browser and set a cookie based on which extensions you have installed.
+    The list of the values is taken from my own browser after running the test method so they are all valid.
+    
+    This is just more of a shortcut method instead of trying to reverse engineer the entire code that they had.
+    :return: 
+    """
+    # safe param set to () for the single parameter with the key of "eval.toString().length".
+    # This is needed to match the cookie value exactly with what is expected from incapsula.
     r = [quote('='.join(x), safe='()') for x in o]
     return ','.join(r)
 
 
 def simple_digest(s):
     """
+    Create a sum of the ordinal values of the characters passed in from s.
 
     Translated From:
     ```javascript
@@ -66,7 +82,7 @@ def simple_digest(s):
         return res;
     }
     ```
-    :param s: 
+    :param s: The string to calculate the digest from.
     :return: 
     """
     res = 0
@@ -76,6 +92,7 @@ def simple_digest(s):
 
 
 class IncapSession(Session):
+    # Max retries before giving up cracking incapsula.
     MAX_INCAP_RETRIES = 3
     default_useragent = 'IncapUnblockSession (sdscdeveloper@gmail.com | https://github.com/ziplokk1/incapsula-cracker-py3)'
 
@@ -86,7 +103,9 @@ class IncapSession(Session):
 
     def get_session_cookies(self):
         """
-        Get cookies from the session tu use with set_incap_cookie.
+        Get cookies from the session to use with set_incap_cookie.
+        
+        Needed to create the simple_digest for the final cookie later.
 
         Translated from:
 
@@ -116,11 +135,11 @@ class IncapSession(Session):
 
     def create_cookie(self, name, value, seconds, domain=''):
         """
-        :type self: requests.Session
-        :param self: 
-        :param name: 
-        :param value: 
-        :param seconds: 
+        Set the incapsula cookie in the session cookies.
+        
+        :param name: Cookie name.
+        :param value: Cookie value.
+        :param seconds: Expiry seconds from the current time.
         :return: 
         """
         expires = None
@@ -132,7 +151,8 @@ class IncapSession(Session):
 
     def set_incap_cookie(self, v_array, domain=''):
         """
-
+        Calculate the final value for the cookie needed to bypass incapsula.
+        
         Translated from:
         ```javascript
         function setIncapCookie(vArray) {
@@ -163,7 +183,8 @@ class IncapSession(Session):
     def incap_blocked(self, content):
         """
         Check if the resource is blocked by incapsula.
-        :param content: 
+        
+        :param content: HTML string.
         :return: 
         """
         # Check for the ROBOTS meta tag in the content.
