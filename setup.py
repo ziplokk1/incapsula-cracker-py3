@@ -3,7 +3,8 @@ from setuptools import setup, find_packages
 version = '0.1.0'
 
 REQUIREMENTS = [
-    'requests'
+    'requests',
+    'bs4'
 ]
 
 setup(

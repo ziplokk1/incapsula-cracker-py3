@@ -1,7 +1,12 @@
-import datetime
-from urllib import parse
-import logging
+from __future__ import unicode_literals
 
+import datetime
+import logging
+import random
+
+from six.moves.urllib.parse import quote, urlsplit
+
+from bs4 import BeautifulSoup
 from requests import Session
 
 logger = logging.getLogger()
@@ -43,7 +48,7 @@ o = [
 
 
 def test():
-    r = [parse.quote('='.join(x), safe='()') for x in o]
+    r = [quote('='.join(x), safe='()') for x in o]
     return ','.join(r)
 
 
@@ -153,13 +158,35 @@ class IncapSession(Session):
         self.create_cookie('___utmvc', res, None, domain=domain)
 
     def crack(self, resp, org=None, tries=0):
+        # Use to hold the original request so that when attempting the new unblocked request, we have a reference
+        # to the original url.
         org = org or resp
+
+        # Return original response after too many tries to bypass incap.
         if tries >= self.MAX_INCAP_RETRIES:
-            logging.warning('incap blocked. not retrying. {}'.format(resp.url))
+            logging.debug('incap blocked. not retrying. {}'.format(resp.url))
             return resp
-        if resp.status_code == 403:
-            logging.warning('incap blocked. retrying. {}'.format(resp.url))
-            self.set_incap_cookie(test(), parse.urlsplit(org.url).netloc)
+
+        # Check for the ROBOTS meta tag in the content.
+        # This is a dead giveaway that the resource is blocked by incap.
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        robots_tag = soup.find('meta', {'name': 'ROBOTS'}) or soup.find('meta', {'name': 'robots'})
+
+        if robots_tag:
+            logging.debug('incap blocked. retrying. {}'.format(resp.url))
+
+            # Split the url so that no matter what site is being requested, we can figure out the host of
+            # the incapsula resource.
+            split = urlsplit(org.url)
+            scheme = split.scheme
+            host = split.netloc
+
+            # Set cookie then send request to incap resource to "apply" cookie.
+            self.set_incap_cookie(test(), host)
+            self.get(scheme + '://' + host + '/_Incapsula_Resource?SWKMTFSR=1&e={}'.format(random.random()))
+
+            # Call crack() again since if the request isn't blocked after the above cookie-set and request,
+            # then it will just return the unblocked resource.
             return self.crack(self.get(org.url, incap=True), org=org, tries=tries + 1)
         return resp
 
@@ -168,10 +195,16 @@ class IncapSession(Session):
 
         :param url: URL for the new :class:`Request` object.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
+        :param incap: Used so when sending a get request from this instance, we dont end up creating an infinate loop
+            by calling .get() then .crack() which calls .get() and repeat x infinity. Also any requests made to get 
+            encapsula resources dont need to be cracked.
         :rtype: requests.Response
         """
 
         kwargs.setdefault('allow_redirects', True)
+
+        # If the request is to get the incapsula resources, then we dont call crack().
         if kwargs.pop('incap', False):
             return self.request('GET', url, **kwargs)
+
         return self.crack(self.request('GET', url, **kwargs))
