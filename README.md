@@ -42,6 +42,17 @@ except IncapBlocked as e:
     raise
 ```
 
+```python
+# Sending a request to a page which is not blocked by incapsula
+from incapsula import IncapSession
+session = IncapSession()
+
+# When using the bypass_crack param, the IncapSession will not send out extra requests to bypass incapsula.
+# This will speed up the requests significantly so if you're making a scraper which
+# accesses multiple sites and some don't use incapsula, you can just bypass the crack.
+response = session.get('http://example.com', bypass_crack=True)
+```
+
 # Setup
 
 `pip install incapsula-cracker-py3`
