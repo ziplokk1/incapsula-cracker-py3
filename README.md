@@ -1,6 +1,6 @@
 # Description
 
-This module is used to wrap any request to a webpage blocked by incapsula.
+This module is used to wrap any request to a webpage blocked by incapsula. Despite the name, this library should be ok to use with python2.7.
 
 # Usage
 
