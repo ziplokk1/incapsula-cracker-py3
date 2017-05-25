@@ -220,6 +220,16 @@ class IncapSession(Session):
         incap_iframe = soup.find('iframe', {'src': re.compile('^/_Incapsula_Resource.*')})
         return robots_tag and incap_iframe
 
+    def html_is_recaptcha(self, html_string):
+        """
+        Check if the html contains recaptcha robot prevention.
+        
+        :param html_string: 
+        :return: 
+        """
+        soup = BeautifulSoup(html_string, 'html.parser')
+        return bool(soup.find('form', {'id': 'captcha-form'}) or soup.find('div', {'class': 'g-recaptcha'}))
+
     def incap_recaptcha_blocked(self, scheme, host, content):
         """
         Get the content from the iframe in a blocked request to determine if the block contains a captcha.
@@ -238,12 +248,10 @@ class IncapSession(Session):
 
         # Send request to get the content of the iframe.
         iframe_url = incap_iframe.get('src')
-        resource = self.get(scheme + '://' + host + iframe_url, incap=True)
+        resource = self.get(scheme + '://' + host + iframe_url, bypass_crack=True)
 
-        # If the element below is found, then the iframe content is for a recaptcha and there's no way around that.
-        soup = BeautifulSoup(resource.content, 'html.parser')
-        is_recaptcha = bool(soup.find('form', {'id': 'captcha-form'}))
-        return is_recaptcha
+        # If the below method is true, then the iframe content is for a recaptcha and there's no way around that.
+        return self.html_is_recaptcha(resource.content)
 
     def crack(self, resp, org=None, tries=0):
         # Use to hold the original request so that when attempting the new unblocked request, we have a reference
