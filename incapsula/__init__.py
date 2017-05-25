@@ -217,7 +217,7 @@ class IncapSession(Session):
         # Not always reliable since some pages have a <meta name="robots"> even if its not blocked by incap.
         # To circumvent that, we also look for an iframe which shows the incapsula error message.
         robots_tag = soup.find('meta', {'name':  re.compile('^robots$', re.IGNORECASE)})
-        incap_iframe = soup.find('iframe', {'src': re.compile('^/_Incapsula_Resource.*')})
+        incap_iframe = soup.find('iframe', {'src': re.compile('^/_Incapsula_Resource.*|^//content.incapsula.com.*')})
         return robots_tag and incap_iframe
 
     def html_is_recaptcha(self, html_string):
