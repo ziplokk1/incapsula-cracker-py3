@@ -5,7 +5,8 @@ import logging
 import random
 
 import re
-from six.moves.urllib.parse import quote, urlsplit
+# from six.moves.urllib.parse import quote, urlsplit
+from urllib.parse import quote, urlsplit
 
 from bs4 import BeautifulSoup
 from requests import Session
