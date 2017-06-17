@@ -1,6 +1,8 @@
+from __future__ import unicode_literals
+
 from setuptools import setup
 
-version = '0.1.7.1'
+version = '0.1.8.1'
 
 REQUIREMENTS = [
     'requests',
