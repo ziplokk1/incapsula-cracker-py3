@@ -5,6 +5,9 @@ version: 2
 jobs:
   build:
     <<: *defaults
+    docker:
+      - image: ubuntu:14.04
+      - image: python:2.7
     steps:
       - checkout
   build-p27:
