@@ -1,36 +1,10 @@
-defaults: &defaults
-  working_directory: ~/incapsula-cracker-py3
-
 version: 2
+
 jobs:
   build:
-    <<: *defaults
+    working_directory: ~/incapsula-cracker-py3
     docker:
-      - image: ubuntu:14.04
-      - image: python:3.4
+      - image: themattrix/tox
     steps:
       - checkout
-  build-p27:
-    <<: *defaults
-    docker:
-      - image: ubuntu:14.04
-      - image: python:2.7
-    steps:
-      - checkout
-      - run: printf Using: && python --version
-  build-p34:
-    <<: *defaults
-    docker:
-      - image: ubuntu:14.04
-      - image: python:3.4
-    steps:
-      - checkout
-      - run: printf Using: && python --version
-
-workflows:
-  version: 2
-  build_and_test:
-    jobs:
-      - build
-      - build-p27
-      - build-p34
+      - run: tox
