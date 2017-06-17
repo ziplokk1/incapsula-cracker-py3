@@ -3,19 +3,19 @@ jobs:
   build:
     working_directory: ~/incapsula-cracker-py3
     docker:
-      - image: circleci/python:3.4
+      - image: python:3.4
     steps:
       - checkout
   p27:
-    docker:
-      - image: circleci/python:2.7
     working_directory: ~/incapsula-cracker-py3
+    docker:
+      - image: python:2.7
     steps:
       - run: printf Using: && python --version
   p34:
-    docker:
-      - image: circleci/python:3.4
     working_directory: ~/incapsula-cracker-py3
+    docker:
+      - image: python:3.4
     steps:
       - run: printf Using: && python --version
 
