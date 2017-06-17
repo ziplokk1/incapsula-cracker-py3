@@ -9,9 +9,7 @@ jobs:
       - image: ubuntu:14.04
     steps:
       - run:
-        command: "|
-          apt-get -y update
-          apt-get install -y git"
+        command: "apt-get -y update && apt-get install -y git"
       - checkout
   build-p27:
     <<: *defaults
@@ -19,9 +17,7 @@ jobs:
       - image: python:2.7
     steps:
       - run:
-        command: "|
-          apt-get -y update
-          apt-get install -y git"
+        command: "apt-get -y update && apt-get install -y git"
       - checkout
   build-p34:
     <<: *defaults
@@ -29,9 +25,7 @@ jobs:
       - image: python:3.4
     steps:
       - run:
-        command: "|
-          apt-get -y update
-          apt-get install -y git"
+        command: "apt-get -y update && apt-get install -y git"
       - checkout
 
 workflows:
