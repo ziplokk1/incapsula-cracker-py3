@@ -1,20 +1,11 @@
 version: 2
 jobs:
-  build:
-    working_directory: ~/incapsula-cracker-py3
-    docker:
-      - image: python:3.4
-    steps:
-      - checkout
-      - run:
-        command:
-          trigger_job build-p27
-          trigger_job build-p34
   build-p27:
     docker:
       - image: python:2.7
     working_directory: ~/incapsula-cracker-py3
     steps:
+      - checkout
       - run:
         command: |
           printf "Using: " && python --version
@@ -23,6 +14,7 @@ jobs:
       - image: python:3.4
     working_directory: ~/incapsula-cracker-py3
     steps:
+      - checkout
       - run:
         command: |
           printf "Using: " && python --version
