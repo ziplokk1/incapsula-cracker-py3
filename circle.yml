@@ -1,20 +1,25 @@
-version: 2
 jobs:
-  build-p27:
+  p27:
     docker:
-      - image: python:2.7
+      - image: circleci/python:2.7
     working_directory: ~/incapsula-cracker-py3
     steps:
       - checkout
       - run:
         command: |
           printf "Using: " && python --version
-  build-p34:
+  p34:
     docker:
-      - image: python:3.4
+      - image: circleci/python:3.4
     working_directory: ~/incapsula-cracker-py3
     steps:
       - checkout
       - run:
         command: |
           printf "Using: " && python --version
+
+workflows:
+  version: 2
+  jobs:
+    - p27
+    - p34
