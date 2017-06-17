@@ -15,18 +15,21 @@ python_defaults: &python_defaults
   working_directory: ~/incapsula-cracker-py3
   steps:
     - run:
-        name: "Update package manager..."
+        name: "Update package manager"
         command: "apt-get -y update"
     - run:
-        name: "Install git..."
+        name: "Install git"
         command: "apt-get install -y git"
     - checkout
     - run:
-        name: "Install dependencies..."
+        name: "Install dependencies"
         command: "python -m pip install -r requirements.txt"
     - run:
-        name: "Install nose..."
+        name: "Install nose"
         command: "python -m pip install nose"
+    - run:
+        name: "Python version"
+        command: "printf Using- && python --version"
     - run:
         name: "Nosetests"
         command: "nosetests -v"
