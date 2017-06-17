@@ -5,6 +5,8 @@ version: 2
 jobs:
   build:
     <<: *defaults
+    steps:
+      - checkout
   build-p27:
     <<: *defaults
     docker:
