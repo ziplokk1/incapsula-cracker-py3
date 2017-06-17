@@ -11,7 +11,6 @@ jobs:
     working_directory: ~/incapsula-cracker-py3
     steps:
       - run:
-        name: Showing Python Version
         command: |
           printf "Using: " && python --version
   p34:
@@ -20,7 +19,6 @@ jobs:
     working_directory: ~/incapsula-cracker-py3
     steps:
       - run:
-        name: Showing Python Version
         command: |
           printf "Using: " && python --version
 
