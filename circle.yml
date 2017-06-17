@@ -7,7 +7,6 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Trigger Jobs
         command:
           trigger_job build-p27
           trigger_job build-p34
