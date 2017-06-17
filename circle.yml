@@ -10,17 +10,18 @@ jobs:
       - image: circleci/python:2.7
     working_directory: ~/incapsula-cracker-py3
     steps:
-      - run: printf "Using: " && python --version
+      - run: printf Using: && python --version
   p34:
     docker:
       - image: circleci/python:3.4
     working_directory: ~/incapsula-cracker-py3
     steps:
-      - run: printf "Using: " && python --version
+      - run: printf Using: && python --version
 
 workflows:
   version: 2
   build_and_test:
     jobs:
+      - build
       - p27
       - p34
