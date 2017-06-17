@@ -3,18 +3,21 @@ jobs:
   build:
     working_directory: ~/incapsula-cracker-py3
     docker:
+      - image: ubuntu:14.04
       - image: python:3.4
     steps:
       - checkout
   p27:
     working_directory: ~/incapsula-cracker-py3
     docker:
+      - image: ubuntu:14.04
       - image: python:2.7
     steps:
       - run: printf Using: && python --version
   p34:
     working_directory: ~/incapsula-cracker-py3
     docker:
+      - image: ubuntu:14.04
       - image: python:3.4
     steps:
       - run: printf Using: && python --version
