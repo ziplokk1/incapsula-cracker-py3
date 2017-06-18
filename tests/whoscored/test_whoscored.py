@@ -58,5 +58,5 @@ class TestWhoScoredIframeContentsNoRecaptcha(unittest.TestCase):
             content = f.read()
         self.parser = IframeResourceParser(make_response('http://content.incapsula.com/jsTest.html', content))
 
-    def test_is_recaptcha(self):
-        self.assertFalse(self.parser.is_recaptcha())
+    def test_is_blocked(self):
+        self.assertFalse(self.parser.is_blocked())

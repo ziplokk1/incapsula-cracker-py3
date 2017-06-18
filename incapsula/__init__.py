@@ -12,9 +12,10 @@ from requests import Session
 
 logger = logging.getLogger('incapsula')
 
+__all__ = ['IncapBlocked', 'IncapSession', 'IframeResourceParser', 'ResourceParser', 'WebsiteResourceParser']
+
 
 class IncapBlocked(ValueError):
-
     def __init__(self, response, *args):
         self.response = response
         super(IncapBlocked, self).__init__(*args)
@@ -99,7 +100,7 @@ def simple_digest(s):
     return str(res)
 
 
-class BaseResourceParser(object):
+class ResourceParser(object):
     """
     Superclass for all other parser objects.
     """
@@ -115,58 +116,97 @@ class BaseResourceParser(object):
         self.host = split.netloc
         self.soup = BeautifulSoup(self.response.content, 'html.parser')
 
+    def is_blocked(self):
+        """
+        Override this method to determine whether or not the resource is blocked.
 
-class IframeResourceParser(BaseResourceParser):
+        :return:
+        """
+        raise NotImplementedError('`is_blocked()` is not implemented')
+
+
+class IframeResourceParser(ResourceParser):
     """
     Parser object to obtain the contents of the incapsula iframe.
     """
+
+    # Standard args to use with soup.find() when searching for the element which contains a recaptcha.
+    default_find_recaptcha_args = [
+        ('form', {'id': 'captcha-form'}),
+        ('div', {'class': 'g-recaptcha'})
+    ]
+
+    # Extra find recaptcha args to use when subclassing.
+    # Note: when searching for the recaptcha, it will search for the recaptcha using the values in this list first then
+    # it will search using the default_find_iframe_args list.
+    extra_find_recaptcha_args = []
 
     def __init__(self, response):
         """
 
         :param response: The response of the request sent to the incapsula iframe url.
         :type response: requests.Response
+
+        :param extra_find_args: List of tuples used as args when calling .find() to search for the element which is a recaptcha.
+        :type extra_find_args: list[tuple[str, dict[str, str]]]
         """
         super(IframeResourceParser, self).__init__(response)
-        self.recaptcha_elements = [
-            ('form', {'id': 'captcha-form'}),
-            ('div', {'class': 'g-recaptcha'})
-        ]
 
-    def is_recaptcha(self):
+    @property
+    def recaptcha_element(self):
+        """
+        Find the recaptcha element in the document.
+
+        :return:
+        """
+        # Iterate over user defined list first.
+        for element in self.extra_find_recaptcha_args:
+            elem = self.soup.find(*element)
+            if elem:
+                return elem
+        # Then iterate over defaults.
+        for element in self.default_find_recaptcha_args:
+            elem = self.soup.find(*element)
+            if elem:
+                return elem
+
+    def is_blocked(self):
         """
         Determine whether the iframe contents is a google recaptcha.
 
+        This is determined by simply iterating over the combined results of default_find_recaptcha_args and
+        extra_find_recaptcha_args then seeing if the element is found in the document.
+
         :return: True if the iframe contains a google recaptcha.
         """
-        for element in self.recaptcha_elements:
-            if self.soup.find(*element):
-                return True
-        return False
+        return bool(self.recaptcha_element)
 
 
-class WebsiteResourceParser(BaseResourceParser):
+class WebsiteResourceParser(ResourceParser):
     """
-    Parser object for the inital resource which was requested.
+    Parser object to extract the robots meta element, incapsula iframe element, and the incapsula iframe url.
     """
 
-    def __init__(self, response, extra_iframe_patterns=None):
+    # Standard args to use with soup.find() when searching for the iframe.
+    default_find_iframe_args = [
+        ('iframe', {'src': re.compile('^/_Incapsula_Resource.*')}),
+        ('iframe', {'src': re.compile('^//content\.incapsula\.com.*')})
+    ]
+
+    # Extra find iframe args to use when subclassing.
+    # Note: when searching for the iframe, it will search for the iframe using the values in this list first then
+    # it will search using the default_find_iframe_args list.
+    extra_find_iframe_args = []
+
+    def __init__(self, response):
         """
 
         :param response: The response of the request sent to the targeted host.
-        :param extra_iframe_patterns: A list of compiled regex patterns which will match the incapsula iframe src attribute value.
+        :param extra_find_args: A list of compiled regex patterns which will match the incapsula iframe src attribute value.
             Use when there are issues detecting whether the resource is blocked by incapsula.
-        :type extra_iframe_patterns: list[_sre.SRE_Pattern]
+        :type extra_find_args:
         """
         super(WebsiteResourceParser, self).__init__(response)
-        # Common incapsula iframe src values.
-        # Used to find the iframe which hosts the incapsula resource.
-        self.incapsula_iframe_src_patterns = [
-            re.compile('^/_Incapsula_Resource.*'),
-            re.compile('^//content\.incapsula\.com.*')
-        ]
-        if extra_iframe_patterns:
-            self.incapsula_iframe_src_patterns.extend(extra_iframe_patterns)
 
     @property
     def robots_meta(self):
@@ -186,8 +226,14 @@ class WebsiteResourceParser(BaseResourceParser):
         :rtype: bs4.element.Tag
         :return:
         """
-        for pattern in self.incapsula_iframe_src_patterns:
-            iframe = self.soup.find('iframe', {'src': pattern})
+        # Iterate over user defined args first.
+        for element in self.extra_find_iframe_args:
+            iframe = self.soup.find(*element)
+            if iframe:
+                return iframe
+        # Then iterate over defaults.
+        for element in self.default_find_iframe_args:
+            iframe = self.soup.find(*element)
             if iframe:
                 return iframe
 
@@ -218,8 +264,11 @@ class WebsiteResourceParser(BaseResourceParser):
 
 
 class IncapSession(Session):
-
-    def __init__(self, max_retries=3, user_agent=None, cookie_domain=''):
+    """
+    Session object to bypass sites which are guarded by incapsula.
+    """
+    def __init__(self, max_retries=3, user_agent=None, cookie_domain='', resource_parser=WebsiteResourceParser,
+                 iframe_parser=IframeResourceParser):
         """
 
         :param max_retries: The number of times to attempt to get the incapsula resource before giving up.
@@ -228,7 +277,8 @@ class IncapSession(Session):
         :param cookie_domain: Use this param to change the domain which is set in the cookie.
             Sometimes the domain set for the cookie isn't the same as the actual host. 
             i.e. .domain.com instead of www.domain.com. 
-            
+        :param resource_parser: ResourceParser class (not instance) to use when checking whether the website served back a page which is blocked by incapsula.
+        :param iframe_parser: ResourceParser class (not instance) to use when checking whether the iframe contains a captcha.
         """
         super(IncapSession, self).__init__()
 
@@ -239,24 +289,10 @@ class IncapSession(Session):
         self.cookie_domain = cookie_domain
         self.headers['User-Agent'] = user_agent
 
-    def get_incapsula_resource_url(self, scheme, host):
-        """
-        Override this method to change the get request after the cookies are set.
+        self.ResourceParser = resource_parser
+        self.IframeParser = iframe_parser
 
-        After the cookies are set, there is a GET request which must get sent to validate the session.
-        Override this method to return a different url to send the GET request to.
-        This method is more of a future proofing measure than anything.
-
-        Reverse engineer from:
-        ```javascript
-        setIncapCookie(test(o));
-        document.createElement("img").src = "/_Incapsula_Resource?SWKMTFSR=1&e=" + Math.random()
-        ```
-        """
-        rdm = random.random()
-        return scheme + '://' + host + '/_Incapsula_Resource?SWKMTFSR=1&e={}'.format(rdm)
-
-    def get_session_cookies(self):
+    def _get_session_cookies(self):
         """
         Get a list of cookies which start with 'incap_ses_'.
         
@@ -284,7 +320,7 @@ class IncapSession(Session):
         """
         return [cookie.value for cookie in self.cookies if cookie.name.startswith('incap_ses_')]
 
-    def create_cookie(self, name, value, seconds, domain=''):
+    def _create_cookie(self, name, value, seconds, domain=''):
         """
         Set the incapsula cookie in the session cookies.
         
@@ -301,7 +337,7 @@ class IncapSession(Session):
             expires = round((d - datetime.datetime.utcfromtimestamp(0)).total_seconds() * 1000)
         self.cookies.set(name, value, domain=domain, path='/', expires=expires)
 
-    def set_incap_cookie(self, v_array, domain=''):
+    def _set_incap_cookie(self, v_array, domain=''):
         """
         Calculate the final value for the cookie needed to bypass incapsula.
         
@@ -326,17 +362,17 @@ class IncapSession(Session):
         :param v_array: 
         :return: 
         """
-        cookies = self.get_session_cookies()
+        cookies = self._get_session_cookies()
         digests = []
         for cookie_val in cookies:
             digests.append(simple_digest(v_array + cookie_val))
         res = v_array + ',digest=' + ','.join(digests)
         logger.debug('setting ___utmvc cookie to {}'.format(res))
-        self.create_cookie('___utmvc', res, 20, domain=domain)
+        self._create_cookie('___utmvc', res, 20, domain=domain)
 
-    def raise_for_recaptcha(self, resource):
+    def _raise_for_recaptcha(self, resource):
         """
-        Raise an IncapBlocked exception if the iframe in the original resource contains a recaptcha.
+        Raise an IncapBlocked exception if the iframe contains a recaptcha.
 
         Send get request to iframe url to get the contents and raise if the contents contain a re-captcha.
 
@@ -345,12 +381,12 @@ class IncapSession(Session):
         """
         # Get the content from the iframe.
         iframe_response = self.get(resource.incapsula_iframe_url, bypass_crack=True)
-        iframe_resource = IframeResourceParser(iframe_response)
+        iframe_resource = self.IframeParser(iframe_response)
 
-        if iframe_resource.is_recaptcha():
+        if iframe_resource.is_blocked():
             raise IncapBlocked(iframe_response, 'resource blocked by re-captcha')
 
-    def apply_cookies(self, original_url):
+    def _apply_cookies(self, original_url):
         """
         Set the session cookies and send the necessary GET request to "apply" the cookies.
 
@@ -365,8 +401,25 @@ class IncapSession(Session):
         host = split.netloc
 
         # Set the cookie then send request to incap resource to "apply" cookie.
-        self.set_incap_cookie(test(), self.cookie_domain or host)
+        self._set_incap_cookie(test(), self.cookie_domain or host)
         self.get(self.get_incapsula_resource_url(scheme, host), bypass_crack=True)
+
+    def get_incapsula_resource_url(self, scheme, host):
+        """
+        Override this method to change the GET request after the cookies are set.
+
+        After the cookies are set, there is a GET request which must get sent to validate the session.
+        Override this method to return a different url to send the GET request to.
+        This method is more of a future proofing measure than anything.
+
+        Reverse engineer from:
+        ```javascript
+        setIncapCookie(test(o));
+        document.createElement("img").src = "/_Incapsula_Resource?SWKMTFSR=1&e=" + Math.random()
+        ```
+        """
+        rdm = random.random()
+        return scheme + '://' + host + '/_Incapsula_Resource?SWKMTFSR=1&e={}'.format(rdm)
 
     def crack(self, resp, org=None, tries=0):
         """
@@ -386,18 +439,18 @@ class IncapSession(Session):
         if self.max_retries is not None and tries >= self.max_retries:
             raise IncapBlocked(resp, 'max retries exceeded when attempting to crack incapsula')
 
-        resource = WebsiteResourceParser(resp)
+        resource = self.ResourceParser(resp)
         if resource.is_blocked():
             logger.debug('Resource is blocked. attempt={} url={}'.format(tries, resp.url))
             # Raise if the response content's iframe contains a recaptcha.
-            self.raise_for_recaptcha(resource)
+            self._raise_for_recaptcha(resource)
 
             # Apply cookies and send GET request to apply them.
-            self.apply_cookies(org.url)
+            self._apply_cookies(org.url)
 
             # Recursively call crack() again since if the request isn't blocked after the above cookie-set and request,
             # then it will just return the unblocked resource.
-            return self.crack(self.get(org.url, bypass_crack=True), org=org, tries=tries+1)
+            return self.crack(self.get(org.url, bypass_crack=True), org=org, tries=tries + 1)
 
         return resp
 

@@ -48,5 +48,5 @@ class TestIframeResourceParserReCaptcha(unittest.TestCase):
     def setUp(self):
         self.parser = IframeResourceParser(make_response('http://dollargeneral.com/iframe-fake-url', self.body))
 
-    def test_is_recaptcha(self):
-        self.assertTrue(self.parser.is_recaptcha())
+    def test_is_blocked(self):
+        self.assertTrue(self.parser.is_blocked())
