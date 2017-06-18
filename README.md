@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/ziplokk1/incapsula-cracker-py3.svg?style=shield)](https://circleci.com/gh/ziplokk1/incapsula-cracker-py3)
 # Description
 
 This module is used to wrap any request to a webpage blocked by incapsula. Despite the name, this library should be ok to use with python2.7.
@@ -75,7 +76,7 @@ response = session.get('http://example.com', bypass_crack=True)
 
 # How it works:
 Lets start with how incapsula works first:
-1. Shen you navigate to a webpage, incapsula runs some javascript code which tests your browser to see if it's using selenium, phantomJS, mechanize, etc.
+1. When you navigate to a webpage, incapsula runs some javascript code which tests your browser to see if it's using selenium, phantomJS, mechanize, etc.
 2. A cookie is created which holds the results of this test.
 3. A request is then sent out which "applies" the cookie and now sends back a few other cookies necessary to obtain access to the site.
 4. Any subsequent request is now authorized to access the site until the cookie expires.
@@ -99,7 +100,7 @@ If the contents contain a re-captcha, then there's nothing we can do and we rais
 
 
 # Customizing
-The iframe src isn't contained in what I have coded already, here is how to expand the list to search.
+### The iframe src isn't contained in what I have coded already, here is how to expand the list to search.
 ```html
 <head>
     <meta name="ROBOTS"/>
@@ -120,7 +121,7 @@ class MyResourceParser(WebsiteResourceParser):
 incap_session = IncapSession(resource_parser=MyResourceParser)
 # more code here
 ```
-The resource is blocked by incapsula but there's no `<meta name="ROBOTS"/>` so this library isn't detecting that it's blocked.
+### The resource is blocked by incapsula but there's no `<meta name="ROBOTS"/>` so this library isn't detecting that it's blocked.
 ```html
 <head></head>
 <body>
@@ -137,7 +138,7 @@ class NoRobotsMetaResourceParser(WebsiteResourceParser):
 incap_session = IncapSession(resource_parser=NoRobotsMetaResourceParser)
 # More code here
 ```
-The iframe contents have a captcha, but my library isn't detecting that.
+### The iframe contents have a captcha, but my library isn't detecting that.
 ```html
 <!-- Response from iframe request -->
 <body>
@@ -157,6 +158,8 @@ class MyIframeResourceParser(IframeResourceParser):
     
 incap_session = IncapSession(iframe_parser=MyIframeResourceParser)
 ```
+### Since I've tried to keep this pretty site agnostic, its not always going to work with some sites. I've tried to keep it as extensible as possible so that it's easy to tailor it to a specific site.
+
 ## As Always: Scrape responsibly, obey timeouts, and obey the robots.txt. ;)
 
 feel free to contact me at sdscdeveloper@gmail.com
