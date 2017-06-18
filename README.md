@@ -7,6 +7,8 @@ Incapsula has begun using re-captcha after too many requests which may seem mali
 
 Currently in order to detect that, I just simply raise an IncapBlocked error when the page is blocked by re-captcha.
 
+## Documentation can be found [here](https://ziplokk1.github.io/incapsula-cracker-py3/).
+
 # Usage
 
 ```python
