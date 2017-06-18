@@ -1,0 +1,489 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>incapsula package &#8212; Incapsula Cracker 0.1.8.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.8.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="incapsula-package">
+<h1>incapsula package<a class="headerlink" href="#incapsula-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-incapsula.errors">
+<span id="incapsula-errors-module"></span><h2>incapsula.errors module<a class="headerlink" href="#module-incapsula.errors" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="incapsula.errors.IncapBlocked">
+<em class="property">exception </em><code class="descclassname">incapsula.errors.</code><code class="descname">IncapBlocked</code><span class="sig-paren">(</span><em>response</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.errors.IncapBlocked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">ValueError</span></code></p>
+<p>Base exception for exceptions in this module.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>response</strong> (<em>requests.Response</em>) – The response which was being processed when this error was raised.</li>
+<li><strong>*args</strong> – <p>Additional arguments to pass to <code class="xref py py-class docutils literal"><span class="pre">ValueError</span></code>.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="exception">
+<dt id="incapsula.errors.MaxRetriesExceeded">
+<em class="property">exception </em><code class="descclassname">incapsula.errors.</code><code class="descname">MaxRetriesExceeded</code><span class="sig-paren">(</span><em>response</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.errors.MaxRetriesExceeded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#incapsula.errors.IncapBlocked" title="incapsula.errors.IncapBlocked"><code class="xref py py-class docutils literal"><span class="pre">incapsula.errors.IncapBlocked</span></code></a></p>
+<p>Raised when the number attempts to bypass incapsula has exceeded the amount specified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>response</strong> (<em>requests.Response</em>) – The response which was being processed when this error was raised.</li>
+<li><strong>*args</strong> – <p>Additional arguments to pass to <code class="xref py py-class docutils literal"><span class="pre">ValueError</span></code>.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="exception">
+<dt id="incapsula.errors.RecaptchaBlocked">
+<em class="property">exception </em><code class="descclassname">incapsula.errors.</code><code class="descname">RecaptchaBlocked</code><span class="sig-paren">(</span><em>response</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.errors.RecaptchaBlocked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#incapsula.errors.IncapBlocked" title="incapsula.errors.IncapBlocked"><code class="xref py py-class docutils literal"><span class="pre">incapsula.errors.IncapBlocked</span></code></a></p>
+<p>Raised when re-captcha is encountered.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>response</strong> (<em>requests.Response</em>) – The response which contains the re-captcha.</li>
+<li><strong>*args</strong> – <p>Additional arguments to pass to <code class="xref py py-class docutils literal"><span class="pre">ValueError</span></code>.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-incapsula.parsers">
+<span id="incapsula-parsers-module"></span><h2>incapsula.parsers module<a class="headerlink" href="#module-incapsula.parsers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="incapsula.parsers.IframeResourceParser">
+<em class="property">class </em><code class="descclassname">incapsula.parsers.</code><code class="descname">IframeResourceParser</code><span class="sig-paren">(</span><em>response</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.parsers.IframeResourceParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#incapsula.parsers.ResourceParser" title="incapsula.parsers.ResourceParser"><code class="xref py py-class docutils literal"><span class="pre">incapsula.parsers.ResourceParser</span></code></a></p>
+<p>Parser object to obtain the contents of the incapsula iframe.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>response</strong> (<em>requests.Response</em>) – The response of the request sent to the incapsula iframe url.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="incapsula.parsers.IframeResourceParser.default_find_recaptcha_args">
+<code class="descname">default_find_recaptcha_args</code><em class="property"> = [(‘form’, {‘id’: ‘captcha-form’}), (‘div’, {‘class’: ‘g-recaptcha’})]</em><a class="headerlink" href="#incapsula.parsers.IframeResourceParser.default_find_recaptcha_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="incapsula.parsers.IframeResourceParser.extra_find_recaptcha_args">
+<code class="descname">extra_find_recaptcha_args</code><em class="property"> = []</em><a class="headerlink" href="#incapsula.parsers.IframeResourceParser.extra_find_recaptcha_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="incapsula.parsers.IframeResourceParser.is_blocked">
+<code class="descname">is_blocked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.parsers.IframeResourceParser.is_blocked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether the iframe contents is a google recaptcha.</p>
+<p>This is determined by simply iterating over the combined results of default_find_recaptcha_args and
+extra_find_recaptcha_args then seeing if the element is found in the document.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the iframe contains a google recaptcha.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="incapsula.parsers.IframeResourceParser.recaptcha_element">
+<code class="descname">recaptcha_element</code><a class="headerlink" href="#incapsula.parsers.IframeResourceParser.recaptcha_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recaptcha element in the document.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bs4.element.Tag</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="incapsula.parsers.ResourceParser">
+<em class="property">class </em><code class="descclassname">incapsula.parsers.</code><code class="descname">ResourceParser</code><span class="sig-paren">(</span><em>response</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.parsers.ResourceParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Superclass for all other parser objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>response</strong> (<em>requests.Response</em>) – Response from GET request.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="incapsula.parsers.ResourceParser.is_blocked">
+<code class="descname">is_blocked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.parsers.ResourceParser.is_blocked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this method to determine whether or not the resource is blocked.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If this class is passed into <code class="xref py py-class docutils literal"><span class="pre">IncapSession</span></code> as the <code class="docutils literal"><span class="pre">resource_parser</span></code> parameter then this
+method will be used to determine whether to attempt to bypass incapsula or raise
+a <code class="xref py py-class docutils literal"><span class="pre">MaxRetriesExceeded</span></code> error on too many retries.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If this class is passed into <code class="xref py py-class docutils literal"><span class="pre">IncapSession</span></code> as the <code class="docutils literal"><span class="pre">iframe_parser</span></code> parameter then
+this method will be used to determine whether to raise a <code class="xref py py-class docutils literal"><span class="pre">RecaptchaBlocked</span></code> error when a
+re-captcha is encountered.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if resource is blocked otherwise False</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="incapsula.parsers.WebsiteResourceParser">
+<em class="property">class </em><code class="descclassname">incapsula.parsers.</code><code class="descname">WebsiteResourceParser</code><span class="sig-paren">(</span><em>response</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.parsers.WebsiteResourceParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#incapsula.parsers.ResourceParser" title="incapsula.parsers.ResourceParser"><code class="xref py py-class docutils literal"><span class="pre">incapsula.parsers.ResourceParser</span></code></a></p>
+<p>Parser object to extract the robots meta element, incapsula iframe element, and the incapsula iframe url.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>response</strong> (<em>requests.Response</em>) – The response of the request sent to the targeted host.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="incapsula.parsers.WebsiteResourceParser.default_find_iframe_args">
+<code class="descname">default_find_iframe_args</code><em class="property"> = [(‘iframe’, {‘src’: re.compile(‘^/_Incapsula_Resource.*’)}), (‘iframe’, {‘src’: re.compile(‘^//content\.incapsula\.com.*’)})]</em><a class="headerlink" href="#incapsula.parsers.WebsiteResourceParser.default_find_iframe_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="incapsula.parsers.WebsiteResourceParser.extra_find_iframe_args">
+<code class="descname">extra_find_iframe_args</code><em class="property"> = []</em><a class="headerlink" href="#incapsula.parsers.WebsiteResourceParser.extra_find_iframe_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="incapsula.parsers.WebsiteResourceParser.incapsula_iframe">
+<code class="descname">incapsula_iframe</code><a class="headerlink" href="#incapsula.parsers.WebsiteResourceParser.incapsula_iframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>The iframe which contains the javascript code that runs on browser load.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bs4.element.Tag</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="incapsula.parsers.WebsiteResourceParser.incapsula_iframe_url">
+<code class="descname">incapsula_iframe_url</code><a class="headerlink" href="#incapsula.parsers.WebsiteResourceParser.incapsula_iframe_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The src attribute value of the incapsula iframe.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="incapsula.parsers.WebsiteResourceParser.is_blocked">
+<code class="descname">is_blocked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.parsers.WebsiteResourceParser.is_blocked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether the resource is blocked by incapsula or not.</p>
+<p>If the resource has the &lt;meta name=”ROBOTS”&gt; tag and the incapsula IFrame
+then we can assume the resource is blocked.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the robots meta tag and the incapsula iframe are both found in the document.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="incapsula.parsers.WebsiteResourceParser.robots_meta">
+<code class="descname">robots_meta</code><a class="headerlink" href="#incapsula.parsers.WebsiteResourceParser.robots_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>The meta robots tag which is so commonly found in incapsula blocked resources.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bs4.element.Tag</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-incapsula.session">
+<span id="incapsula-session-module"></span><h2>incapsula.session module<a class="headerlink" href="#module-incapsula.session" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="incapsula.session.IncapSession">
+<em class="property">class </em><code class="descclassname">incapsula.session.</code><code class="descname">IncapSession</code><span class="sig-paren">(</span><em>max_retries=3</em>, <em>user_agent=None</em>, <em>cookie_domain=”</em>, <em>resource_parser=&lt;class ‘incapsula.parsers.WebsiteResourceParser’&gt;</em>, <em>iframe_parser=&lt;class ‘incapsula.parsers.IframeResourceParser’&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.session.IncapSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">requests.sessions.Session</span></code></p>
+<p>Session object to bypass sites which are guarded by incapsula.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>max_retries</strong> – The number of times to attempt to get the incapsula resource before
+raising a <code class="xref py py-class docutils literal"><span class="pre">MaxRetriesExceeded</span></code> error. Set this to <cite>None</cite> to never give up.</li>
+<li><strong>user_agent</strong> – Change the default user agent when sending requests.</li>
+<li><strong>cookie_domain</strong> – Use this param to change the domain which is set in the cookie.
+Sometimes the domain set for the cookie isn’t the same as the actual host.
+i.e. .domain.com instead of www.domain.com.</li>
+<li><strong>resource_parser</strong> – <code class="xref py py-class docutils literal"><span class="pre">ResourceParser</span></code> to use when checking whether the website served back a page which
+is blocked by incapsula. Default: <code class="xref py py-class docutils literal"><span class="pre">WebsiteResourceParser</span></code>.</li>
+<li><strong>iframe_parser</strong> – <code class="xref py py-class docutils literal"><span class="pre">ResourceParser</span></code> class (not instance) to use when checking whether the iframe
+contains a captcha. Default: <code class="xref py py-class docutils literal"><span class="pre">IframeResourceParser</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="incapsula.session.IncapSession.crack">
+<code class="descname">crack</code><span class="sig-paren">(</span><em>resp</em>, <em>org=None</em>, <em>tries=0</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.session.IncapSession.crack" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the response is blocked by incapsula then set the necessary cookies and attempt to bypass it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>resp</strong> – Response to check.</li>
+<li><strong>org</strong> – Original response. Used only when called recursively.</li>
+<li><strong>tries</strong> – Number of attempts. Used only when called recursively.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="incapsula.session.IncapSession.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>url</em>, <em>bypass_crack=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.session.IncapSession.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override <code class="xref py py-class docutils literal"><span class="pre">Session</span></code>.:func:<cite>get</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> – URL for the new <code class="xref py py-class docutils literal"><span class="pre">Request</span></code> object.</li>
+<li><strong>bypass_crack</strong> – Use when sending a request that you dont want to go through the incapsula crack.</li>
+<li><strong>kwargs</strong> – Optional arguments that <code class="docutils literal"><span class="pre">request</span></code> takes.
+Used in this class so when sending a get request from this instance,
+we dont end up creating an infinate loop by calling .get() then .crack() which calls .get()
+and repeat x infinity. Also any requests made to get incapsula resources don’t need to be cracked.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">requests.Response</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="incapsula.session.IncapSession.get_incapsula_resource_url">
+<code class="descname">get_incapsula_resource_url</code><span class="sig-paren">(</span><em>scheme</em>, <em>host</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.session.IncapSession.get_incapsula_resource_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this method to change the GET request after the cookies are set.</p>
+<p>After the cookies are set, there is a GET request which must get sent to validate the session.
+Override this method to return a different url to send the GET request to.
+This method is more of a future proofing measure than anything.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>scheme</strong> – ‘http’ or ‘https’.</li>
+<li><strong>host</strong> – The host of the incapsula resource url. e.x. ‘www.example.com’.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="incapsula.session.simple_digest">
+<code class="descclassname">incapsula.session.</code><code class="descname">simple_digest</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.session.simple_digest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a sum of the ordinal values of the characters passed in from s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> – The string to calculate the digest from.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Sum of ordinal values converted to a string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="incapsula.session.test">
+<code class="descclassname">incapsula.session.</code><code class="descname">test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#incapsula.session.test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quote each value in the tuple list and return a comma delimited string of the parameters.</p>
+<p>This method is a shortened version of incapsulas test method. What the original method does is check
+for specific plugins in your browser and set a cookie based on which extensions you have installed.
+The list of the values is taken from my own browser after running the test method so they are all valid.</p>
+<p>This is just more of a shortcut method instead of trying to reverse engineer the entire code that they had.
+:return:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-incapsula">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-incapsula" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">incapsula package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-incapsula.errors">incapsula.errors module</a></li>
+<li><a class="reference internal" href="#module-incapsula.parsers">incapsula.parsers module</a></li>
+<li><a class="reference internal" href="#module-incapsula.session">incapsula.session module</a></li>
+<li><a class="reference internal" href="#module-incapsula">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/source/incapsula.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Mark Sanders.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/source/incapsula.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
