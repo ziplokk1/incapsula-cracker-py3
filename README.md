@@ -41,11 +41,11 @@ print(session.cookies)
 
 ```python
 # Handling re-captcha blocks.
-from incapsula import IncapSession, IncapBlocked
+from incapsula import IncapSession, RecaptchaBlocked
 session = IncapSession()
 try:
     response = session.get('http://example.com')
-except IncapBlocked as e:
+except RecaptchaBlocked as e:
     raise
 ```
 

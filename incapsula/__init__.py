@@ -21,6 +21,14 @@ class IncapBlocked(ValueError):
         super(IncapBlocked, self).__init__(*args)
 
 
+class MaxRetriesExceeded(IncapBlocked):
+    pass
+
+
+class RecaptchaBlocked(IncapBlocked):
+    pass
+
+
 # A list of valid values which are tested in the incapsula test method.
 # These values are pulled straight from my browser and should be enough to spoof
 # the robot check when setting the cookie.
@@ -81,18 +89,17 @@ def simple_digest(s):
     """
     Create a sum of the ordinal values of the characters passed in from s.
 
-    Translated From:
-    ```javascript
-    function simpleDigest(mystr) {
-        var res = 0;
-        for (var i = 0; i < mystr.length; i++) {
-            res += mystr.charCodeAt(i);
+    .. note:: Translated From:
+        function simpleDigest(mystr) {
+            var res = 0;
+            for (var i = 0; i < mystr.length; i++) {
+                res += mystr.charCodeAt(i);
+            }
+            return res;
         }
-        return res;
-    }
-    ```
+
     :param s: The string to calculate the digest from.
-    :return: 
+    :return: Sum of ordinal values converted to a string.
     """
     res = 0
     for ch in s:
@@ -107,8 +114,8 @@ class ResourceParser(object):
 
     def __init__(self, response):
         """
+        :param response: Response from GET request.
         :type response: requests.Response
-        :param response:
         """
         self.response = response
         split = urlsplit(response.url)
@@ -120,7 +127,15 @@ class ResourceParser(object):
         """
         Override this method to determine whether or not the resource is blocked.
 
-        :return:
+        .. note:: If this class is passed into :class:`IncapSession` as the ``resource_parser`` parameter then this
+            method will be used to determine whether to attempt to bypass incapsula or raise a :class:`IncapBlocked`
+            error on too many retries.
+
+        .. note:: If this class is passed into :class:`IncapSession` as the ``iframe_parser`` parameter then
+            this method will be used to determine whether to raise a :class:`IncapBlocked` error when a
+            re-captcha is encountered.
+
+        :return: True if resource is blocked otherwise False
         """
         raise NotImplementedError('`is_blocked()` is not implemented')
 
@@ -146,16 +161,13 @@ class IframeResourceParser(ResourceParser):
 
         :param response: The response of the request sent to the incapsula iframe url.
         :type response: requests.Response
-
-        :param extra_find_args: List of tuples used as args when calling .find() to search for the element which is a recaptcha.
-        :type extra_find_args: list[tuple[str, dict[str, str]]]
         """
         super(IframeResourceParser, self).__init__(response)
 
     @property
     def recaptcha_element(self):
         """
-        Find the recaptcha element in the document.
+        Recaptcha element in the document.
 
         :return:
         """
@@ -202,9 +214,7 @@ class WebsiteResourceParser(ResourceParser):
         """
 
         :param response: The response of the request sent to the targeted host.
-        :param extra_find_args: A list of compiled regex patterns which will match the incapsula iframe src attribute value.
-            Use when there are issues detecting whether the resource is blocked by incapsula.
-        :type extra_find_args:
+        :type response: requests.Response
         """
         super(WebsiteResourceParser, self).__init__(response)
 
@@ -214,7 +224,6 @@ class WebsiteResourceParser(ResourceParser):
         The <meta name="ROBOTS"> tag which is so commonly found in incapsula blocked resources.
 
         :rtype: bs4.element.Tag
-        :return:
         """
         return self.soup.find('meta', {'name': re.compile('^robots$', re.IGNORECASE)})
 
@@ -224,7 +233,6 @@ class WebsiteResourceParser(ResourceParser):
         The iframe which contains the javascript code that runs on browser load.
 
         :rtype: bs4.element.Tag
-        :return:
         """
         # Iterate over user defined args first.
         for element in self.extra_find_iframe_args:
@@ -243,7 +251,6 @@ class WebsiteResourceParser(ResourceParser):
         The src attribute value of the incapsula iframe.
 
         :rtype: str
-        :return:
         """
         if self.incapsula_iframe:
             uri = self.incapsula_iframe.get('src')
@@ -271,14 +278,14 @@ class IncapSession(Session):
                  iframe_parser=IframeResourceParser):
         """
 
-        :param max_retries: The number of times to attempt to get the incapsula resource before giving up.
+        :param max_retries: The number of times to attempt to get the incapsula resource before raising a :class:`MaxRetriesExceeded` error.
             Set this to `None` to never give up.
         :param user_agent: Change the default user agent when sending requests.
         :param cookie_domain: Use this param to change the domain which is set in the cookie.
             Sometimes the domain set for the cookie isn't the same as the actual host. 
             i.e. .domain.com instead of www.domain.com. 
-        :param resource_parser: ResourceParser class (not instance) to use when checking whether the website served back a page which is blocked by incapsula.
-        :param iframe_parser: ResourceParser class (not instance) to use when checking whether the iframe contains a captcha.
+        :param resource_parser: :class:`ResourceParser` to use when checking whether the website served back a page which is blocked by incapsula. Default: :class:`WebsiteResourceParser`.
+        :param iframe_parser: :class:`ResourceParser` class (not instance) to use when checking whether the iframe contains a captcha. Default: :class:`IframeResourceParser`.
         """
         super(IncapSession, self).__init__()
 
@@ -294,41 +301,36 @@ class IncapSession(Session):
 
     def _get_session_cookies(self):
         """
-        Get a list of cookies which start with 'incap_ses_'.
-        
-        Needed to create the simple_digest for the final cookie later.
+        Get a list of cookies needed for making the simple digest when setting the ___utvmc cookie.
 
-        Translated from:
-
-        ```javascript
-        function getSessionCookies() {
-            var cookieArray = new Array();
-            var cName = /^\s?incap_ses_/;
-            var c = document.cookie.split(";");
-            for (var i = 0; i < c.length; i++) {
-                var key = c[i].substr(0, c[i].indexOf("="));
-                var value = c[i].substr(c[i].indexOf("=") + 1, c[i].length);
-                if (cName.test(key)) {
-                    cookieArray[cookieArray.length] = value;
+        .. note:: Translated from:
+            function getSessionCookies() {
+                var cookieArray = new Array();
+                var cName = /^\s?incap_ses_/;
+                var c = document.cookie.split(";");
+                for (var i = 0; i < c.length; i++) {
+                    var key = c[i].substr(0, c[i].indexOf("="));
+                    var value = c[i].substr(c[i].indexOf("=") + 1, c[i].length);
+                    if (cName.test(key)) {
+                        cookieArray[cookieArray.length] = value;
+                    }
                 }
+                return cookieArray;
             }
-            return cookieArray;
-        }
-        ```
-        :param self: 
-        :return: 
+
+        :return: List of cookies where the cookie name starts with "incap_ses_".
         """
         return [cookie.value for cookie in self.cookies if cookie.name.startswith('incap_ses_')]
 
     def _create_cookie(self, name, value, seconds, domain=''):
         """
-        Set the incapsula cookie in the session cookies.
+        Set the incapsula cookie needed to make verification request.
         
-        :param domain: 
         :param name: Cookie name.
         :param value: Cookie value.
-        :param seconds: Expiry seconds from the current time.
-        :return: 
+        :param seconds: Cookie expiry seconds from the current time.
+        :param domain: Cookie domain.
+        :return:
         """
         expires = None
         if seconds:
@@ -341,26 +343,25 @@ class IncapSession(Session):
         """
         Calculate the final value for the cookie needed to bypass incapsula.
         
-        Translated from:
-        ```javascript
-        function setIncapCookie(vArray) {
-            var res;
-            try {
-                var cookies = getSessionCookies();
-                var digests = new Array(cookies.length);
-                for (var i = 0; i < cookies.length; i++) {
-                    digests[i] = simpleDigest((vArray) + cookies[i]);
+        .. note:: Translated from:
+            function setIncapCookie(vArray) {
+                var res;
+                try {
+                    var cookies = getSessionCookies();
+                    var digests = new Array(cookies.length);
+                    for (var i = 0; i < cookies.length; i++) {
+                        digests[i] = simpleDigest((vArray) + cookies[i]);
+                    }
+                    res = vArray + ",digest=" + (digests.join());
+                } catch (e) {
+                    res = vArray + ",digest=" + (encodeURIComponent(e.toString()));
                 }
-                res = vArray + ",digest=" + (digests.join());
-            } catch (e) {
-                res = vArray + ",digest=" + (encodeURIComponent(e.toString()));
+                createCookie("___utmvc", res, 20);
             }
-            createCookie("___utmvc", res, 20);
-        }
-        ```
-        :param domain: 
-        :param v_array: 
-        :return: 
+
+        :param v_array: Comma delimited, urlencoded string which was returned from :func:`simple_digest`.
+        :param domain: Cookie domain.
+        :return:
         """
         cookies = self._get_session_cookies()
         digests = []
@@ -384,7 +385,7 @@ class IncapSession(Session):
         iframe_resource = self.IframeParser(iframe_response)
 
         if iframe_resource.is_blocked():
-            raise IncapBlocked(iframe_response, 'resource blocked by re-captcha')
+            raise RecaptchaBlocked(iframe_response, 'resource blocked by re-captcha')
 
     def _apply_cookies(self, original_url):
         """
@@ -412,11 +413,12 @@ class IncapSession(Session):
         Override this method to return a different url to send the GET request to.
         This method is more of a future proofing measure than anything.
 
-        Reverse engineer from:
-        ```javascript
-        setIncapCookie(test(o));
-        document.createElement("img").src = "/_Incapsula_Resource?SWKMTFSR=1&e=" + Math.random()
-        ```
+        .. note:: Translated from:
+            setIncapCookie(test(o));
+            document.createElement("img").src = "/_Incapsula_Resource?SWKMTFSR=1&e=" + Math.random()
+
+        :param scheme: 'http' or 'https'.
+        :param host: The host of the incapsula resource url. e.x. 'www.example.com'.
         """
         rdm = random.random()
         return scheme + '://' + host + '/_Incapsula_Resource?SWKMTFSR=1&e={}'.format(rdm)
@@ -437,7 +439,7 @@ class IncapSession(Session):
         # Return original response after too many tries to bypass incap.
         # If max_retries is None then this part will never get executed allowing a continuous retry.
         if self.max_retries is not None and tries >= self.max_retries:
-            raise IncapBlocked(resp, 'max retries exceeded when attempting to crack incapsula')
+            raise MaxRetriesExceeded(resp, 'max retries exceeded when attempting to crack incapsula')
 
         resource = self.ResourceParser(resp)
         if resource.is_blocked():
