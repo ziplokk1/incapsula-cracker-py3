@@ -51,5 +51,11 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - build-p27
-      - build-p34
+      - build-p27:
+          filters:
+            branches:
+              ignore: gh-pages
+      - build-p34:
+          filters:
+            branches:
+              ignore: gh-pages
