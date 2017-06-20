@@ -4,7 +4,7 @@ import os
 import logging
 import datetime
 import random
-from six.moves.urllib.parse import urlsplit
+from six.moves.urllib.parse import quote, urlsplit
 
 from requests import Session
 
@@ -17,7 +17,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(ROOT_DIR, 'browser_test_results.txt')
 
 
-def test():
+def read_values():
     """
     Read a list of valid values which are tested in the incapsula test method.
 
@@ -31,6 +31,24 @@ def test():
     with open(CONFIG_PATH, 'r') as f:
         o = f.read()
     return o
+
+
+def test():
+    """
+    Quote each value in the tuple list and return a comma delimited string of the parameters.
+
+    This method is a shortened version of incapsulas test method. What the original method does is check
+    for specific plugins in your browser and set a cookie based on which extensions you have installed.
+    The list of the values is taken from my own browser after running the test method so they are all valid.
+
+    This is just more of a shortcut method instead of trying to reverse engineer the entire code that they had.
+    :return:
+    """
+    # safe param set to () for the single parameter with the key of "eval.toString().length".
+    # This is needed to match the cookie value exactly with what is expected from incapsula.
+    o = read_values()
+    r = [quote('='.join(x), safe='()') for x in o]
+    return ','.join(r)
 
 
 def simple_digest(s):
