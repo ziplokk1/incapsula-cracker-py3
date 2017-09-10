@@ -126,6 +126,19 @@ class WebsiteResourceParser(ResourceParser):
         super(WebsiteResourceParser, self).__init__(response)
 
     @property
+    def incapsula_script_url(self):
+        """
+        The script url to get the b var value
+        
+        :rtype: str
+        """
+        scripts = self.soup.find_all('script')
+        if len(scripts) > 1:
+            return scripts[0].get('src')
+
+        return None
+
+    @property
     def robots_meta(self):
         """
         The meta robots tag which is so commonly found in incapsula blocked resources.
