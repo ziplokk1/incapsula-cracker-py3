@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import re
+import time
 import logging
 import datetime
 import random
@@ -162,7 +164,7 @@ class IncapSession(Session):
             expires = round((d - datetime.datetime.utcfromtimestamp(0)).total_seconds() * 1000)
         self.cookies.set(name, value, domain=domain, path='/', expires=expires)
 
-    def _set_incap_cookie(self, v_array, domain=''):
+    def _set_incap_cookie(self, v_array, domain='', sl=None):
         """
         Calculate the final value for the cookie needed to bypass incapsula.
 
@@ -175,7 +177,13 @@ class IncapSession(Session):
                     for (var i = 0; i < cookies.length; i++) {
                         digests[i] = simpleDigest((vArray) + cookies[i]);
                     }
-                    res = vArray + ",digest=" + (digests.join());
+                    var sl = "jcMQV+ffvh2BmAcW8nq2a1HZRZcsB5poBUV2Ew==";
+                    var dd = digests.join();
+                    var asl = '';
+                    for (var i=0;i<sl.length;i++) {
+                        asl += (sl.charCodeAt(i) + dd.charCodeAt(i % dd.length)).toString(16);
+                    }
+                    res = vArray + ",digest=" + dd + ",s=" + asl;
                 } catch (e) {
                     res = vArray + ",digest=" + (encodeURIComponent(e.toString()));
                 }
@@ -190,7 +198,13 @@ class IncapSession(Session):
         digests = []
         for cookie_val in cookies:
             digests.append(simple_digest(v_array + cookie_val))
-        res = v_array + ',digest=' + ','.join(digests)
+
+        dd = ','.join(digests)
+
+        asl = self._get_incapsula_asl(dd, sl)
+
+        res = v_array + ',digest=' + dd + ",s=" + asl
+
         logger.debug('setting ___utmvc cookie to {}'.format(res))
         self._create_cookie('___utmvc', res, 20, domain=domain)
 
@@ -210,23 +224,93 @@ class IncapSession(Session):
         if iframe_resource.is_blocked():
             raise RecaptchaBlocked(iframe_response, 'resource blocked by re-captcha')
 
-    def _apply_cookies(self, original_url):
+    def _get_incapsula_b(self, incapsula_script_url):
+        """
+        Get the b var value, which is the obfuscated JS code of incapsula.
+        
+        :param incapsula_script_url: The url where the b var can be found.
+        :return: 
+        """
+        response = self.get(incapsula_script_url, bypass_crack=True)
+
+        b_search = re.search(r"var b=\"(.*?)\"", response.text)
+
+        if not b_search:
+            return None
+
+        return b_search.group(1)
+
+    def _get_incapsula_sl(self, b):
+        """
+        Get the sl var value from the obfuscated JS code.
+        
+        .. note:: Code provided by Hades1996 in:
+            https://github.com/ziplokk1/incapsula-cracker-py3/issues/4
+        
+        :param b: Obfuscated JS code where is the sl var value.
+        :return: 
+        """
+
+        if not b:
+            return None
+
+        char_list = []
+        for i in range(0, len(b), 2):
+            char_list.append(int(b[i:i + 2], base=16))
+
+        code = ""
+        for char in char_list:
+            code = code + chr(char)
+
+        sl_search = re.search('sl = "(.+)";', code)\
+
+        if sl_search:
+            return sl_search.group(1)
+
+        return None
+
+    def _get_incapsula_asl(self, dd, sl):
+        """
+        Get the asl value to set in the incapsula cookies.
+        
+        .. note:: Code provided by Hades1996 in:
+            https://github.com/ziplokk1/incapsula-cracker-py3/issues/4
+        
+        :param dd: Digests joined.
+        :param sl: SL var value.
+        :return: 
+        """
+
+        asl = ""
+        for i in range(0, len(sl)):
+            asl = asl + format(ord(sl[i]) + ord(dd[i % len(dd)]), 'x')
+        return asl
+
+    def _apply_cookies(self, original_url, incapsula_script_url):
         """
         Set the session cookies and send the necessary GET request to "apply" the cookies.
 
         :param original_url: The url of the original request.
             Needed to determine the scheme and host of the domain to send the request to apply the cookies.
+        :param incapsula_script_url: The url where the b var can be found.
         :return:
         """
+
         # Split the url so that no matter what site is being requested, we can figure out the host of
         # the incapsula resource.
         split = urlsplit(original_url)
         scheme = split.scheme
         host = split.netloc
 
-        # Set the cookie then send request to incap resource to "apply" cookie.
-        self._set_incap_cookie(test(), self.cookie_domain or host)
-        self.get(self.get_incapsula_resource_url(scheme, host), bypass_crack=True)
+        b = self._get_incapsula_b(scheme + '://' + host + incapsula_script_url)
+
+        sl = self._get_incapsula_sl(b)
+
+        if sl:
+            # Set the cookie then send request to incap resource to "apply" cookie.
+            self._set_incap_cookie(test(), self.cookie_domain or host, sl)
+
+            self.get(self.get_incapsula_resource_url(scheme, host), bypass_crack=True)
 
     def get_incapsula_resource_url(self, scheme, host):
         """
@@ -267,7 +351,7 @@ class IncapSession(Session):
             self._raise_for_recaptcha(resource)
 
             # Apply cookies and send GET request to apply them.
-            self._apply_cookies(org.url)
+            self._apply_cookies(org.url, resource.incapsula_script_url)
 
             # Recursively call crack() again since if the request isn't blocked after the above cookie-set and request,
             # then it will just return the unblocked resource.
