@@ -350,8 +350,9 @@ class IncapSession(Session):
             # Raise if the response content's iframe contains a recaptcha.
             self._raise_for_recaptcha(resource)
 
-            # Apply cookies and send GET request to apply them.
-            self._apply_cookies(org.url, resource.incapsula_script_url)
+            if resource.incapsula_script_url:
+                # Apply cookies and send GET request to apply them.
+                self._apply_cookies(org.url, resource.incapsula_script_url)
 
             # Recursively call crack() again since if the request isn't blocked after the above cookie-set and request,
             # then it will just return the unblocked resource.
