@@ -6,7 +6,7 @@ version = '0.1.8.1'
 
 REQUIREMENTS = [
     'requests',
-    'bs4',
+    'beautifulsoup4',
     'six'
 ]
 
